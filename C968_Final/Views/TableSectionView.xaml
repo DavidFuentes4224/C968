@@ -1,0 +1,39 @@
+﻿<UserControl x:Class="C968_Final.Views.TableSectionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:C968_Final.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             x:Name="root">
+    <DockPanel Grid.Row="1">
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="SearchButton" Margin="0,0,16,0" Padding="16,4" Content="Search" Click="SearchButton_Click"/>
+            <Border BorderThickness="1" BorderBrush="Black">
+                <TextBlock x:Name="SearchText" Width="150px" />
+            </Border>
+        </StackPanel>
+        <Label Content="{Binding TableName}" DockPanel.Dock="Top" Margin="10,0"/>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16">
+            <Button Content="Add" Margin="16,0,0,0" Padding="16,4" x:Name="AddBttn" Command="{Binding AddTableItemCommand"/>
+            <Button Content="Modify" Margin="16,0,0,0" Padding="16,4" x:Name="ModiftyBttn" Click="ModiftyBttn_Click"/>
+            <Button Content="Delete" Margin="16,0,0,0" Padding="16,4" x:Name="DeleteBttn" Click="DeleteBttn_Click"/>
+        </StackPanel>
+        <ListView ItemsSource="{Binding TableItems}">
+            <ListView.View>
+                <GridView AllowsColumnReorder="true" ColumnHeaderToolTip="{Binding Title}">
+                    <GridView.Columns>
+                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Path=Name}"/>
+                        <GridViewColumn Header="Inventory" DisplayMemberBinding="{Binding Path=Name}"/>
+                        <GridViewColumn Header="Price" DisplayMemberBinding="{Binding Path=Name}"/>
+                        <GridViewColumn Header="Min" DisplayMemberBinding="{Binding Path=Name}"/>
+                        <GridViewColumn Header="Max" DisplayMemberBinding="{Binding Path=Name}"/>
+                    </GridView.Columns>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        
+    </DockPanel>
+
+</UserControl>
