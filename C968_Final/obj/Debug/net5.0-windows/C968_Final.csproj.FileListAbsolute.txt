@@ -25,3 +25,8 @@ C:\Users\hobom\source\repos\C968_Final\C968_Final\obj\Debug\net5.0-windows\Views
 C:\Users\hobom\source\repos\C968_Final\C968_Final\obj\Debug\net5.0-windows\GeneratedInternalTypeHelper.g.cs
 C:\Users\hobom\source\repos\C968_Final\C968_Final\obj\Debug\net5.0-windows\Views\AddOrModifyPart.baml
 C:\Users\hobom\source\repos\C968_Final\C968_Final\obj\Debug\net5.0-windows\Views\TableSectionView.baml
+C:\Users\hobom\source\repos\C968_Final\C968_Final\obj\Debug\net5.0-windows\Views\AddOrModifyProduct.g.cs
+C:\Users\hobom\source\repos\C968_Final\C968_Final\obj\Debug\net5.0-windows\Views\AddOrModifyProduct.baml
+C:\Users\hobom\source\repos\C968_Final\C968_Final\obj\Debug\net5.0-windows\Controls\NumericTextBox.g.cs
+C:\Users\hobom\source\repos\C968_Final\C968_Final\obj\Debug\net5.0-windows\Controls\NumericTextBox.baml
+C:\Users\hobom\source\repos\C968_Final\C968_Final\obj\Debug\net5.0-windows\App.baml

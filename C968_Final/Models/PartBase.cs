@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace C968_Final.Models
 {
-    class PartBase : TableItem
+    public class PartBase : TableItem
     {
-        public int PartId { get; set; }
+        public int? Id { get; set; }
         public string Name { get; set; }
         public float Price { get; set; }
         public int InStock { get; set; }

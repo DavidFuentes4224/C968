@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET5_0;NETCOREAPP
 C:\Users\hobom\source\repos\C968_Final\C968_Final\App.xaml
-3734025548
+5-1747168332
 
-15-1406218919
+27-724386619
 193-1891726104
-MainWindow.xaml;Views\AddOrModifyPart.xaml;Views\TableSectionView.xaml;
+Controls\NumericTextBox.xaml;MainWindow.xaml;Views\AddOrModifyPart.xaml;Views\AddOrModifyProduct.xaml;Views\TableSectionView.xaml;
 
 False
 

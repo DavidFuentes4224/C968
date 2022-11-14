@@ -26,36 +26,9 @@ namespace C968_Final
             InitializeComponent();
         }
 
-        private void SearchButton_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void ModiftyBttn_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void DeleteBttn_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
         private void ExitBttn_Click(object sender, RoutedEventArgs e)
         {
-
+            Application.Current.Shutdown();
         }
-
-        private void AddBttn_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private readonly MainScreenViewModel m_viewModel;
     }
 }

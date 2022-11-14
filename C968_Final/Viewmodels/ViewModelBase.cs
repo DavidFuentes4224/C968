@@ -10,6 +10,8 @@ namespace C968_Final.Viewmodels
     public class ViewModelBase : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void Dispose() { }
         protected virtual void OnPropertyChanged(string propName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
     }
 }

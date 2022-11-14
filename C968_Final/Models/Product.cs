@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace C968_Final.Models
 {
-    class Product : TableItem
+    public class Product : TableItem
     {
-        public List<PartBase> AssociatedParts { get; set; }
-        public int ProductId { get; set; }
+        public List<int> AssociatedParts { get; set; }
+        public int? Id { get; set; }
         public string Name { get; set; }
-        public Decimal Price { get; set; }
+        public float Price { get; set; }
         public int InStock { get; set; }
         public int Min { get; set; }
         public int Max { get; set; }

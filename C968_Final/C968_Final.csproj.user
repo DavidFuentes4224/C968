@@ -7,7 +7,13 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="Controls\NumericTextBox.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\AddOrModifyPart.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\AddOrModifyProduct.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\TableSectionView.xaml.cs">
@@ -15,10 +21,16 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Page Update="Controls\NumericTextBox.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\AddOrModifyPart.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\AddOrModifyProduct.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\TableSectionView.xaml">

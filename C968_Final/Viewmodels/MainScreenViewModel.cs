@@ -1,4 +1,5 @@
 ﻿using C968_Final.Models;
+using C968_Final.Stores;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,15 +9,17 @@ using System.Threading.Tasks;
 
 namespace C968_Final.Viewmodels
 {
-    class MainScreenViewModel : ViewModelBase
+    public class MainScreenViewModel : ViewModelBase
     {
-        public MainScreenViewModel()
+        public MainScreenViewModel(
+            PartsSectionViewModel partsViewModel, 
+            ProductsSectionViewModel productsViewModel)
         {
-            PartsViewModel = new TableSectionViewModel() { TableName = "Parts" };
-            ProductsViewModel = new TableSectionViewModel();
+            PartsViewModel = partsViewModel;
+            ProductsViewModel = productsViewModel;
         }
 
-        public TableSectionViewModel PartsViewModel { get; }
-        public TableSectionViewModel ProductsViewModel { get; }
+        public PartsSectionViewModel PartsViewModel { get; }
+        public ProductsSectionViewModel ProductsViewModel { get; }
     }
 }

@@ -1,14 +1,99 @@
-﻿<Page x:Class="C968_Final.Views.AddOrModifyPart"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:C968_Final.Views"
-      mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="AddOrModifyPart">
+﻿<Window x:Class="C968_Final.Views.AddOrModifyPart"
+        x:Name="PartView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:utility="clr-namespace:C968_Final.Utility"
+        mc:Ignorable="d" 
+        MinHeight="550" MinWidth="400"
+      Height="550" Width="400"
+      Title="Part">
 
-    <Grid>
+    <Grid Background="GhostWhite">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="9*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
         
+        <!--Part Type-->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Content="Add part" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <RadioButton Grid.Column="1" 
+                         GroupName="PartType"
+                         Content="In-House" 
+                         HorizontalAlignment="Center" 
+                         VerticalAlignment="Center"
+                         IsChecked="{Binding IsInHouse}"
+                         Command="{Binding RadioCheckedCommand}"
+                         CommandParameter="InHouse"/>
+            <RadioButton Grid.Column="2"
+                         GroupName="PartType"
+                         Content="Outsourced" 
+                         HorizontalAlignment="Center" 
+                         VerticalAlignment="Center"
+                         Command="{Binding RadioCheckedCommand}"
+                         CommandParameter="Outsourced"/>
+        </Grid>
+        
+        <!--Part Info-->
+        <Grid Grid.Row="1" Margin="50 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            
+            <!--Field Labels-->
+            <Label Content="ID" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Label Grid.Row="1" Content="Name" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Label Grid.Row="2" Content="Inventory" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Label Grid.Row="3" Content="Price / Cost" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Label Grid.Row="4" Content="Max" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Label Visibility="{Binding Path=InHouseVisible}" Grid.Row="5" Content="Machine ID" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Label Visibility="{Binding Path=OutsourcedVisible}" Grid.Row="5" Content="Company Name" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            
+            <!--Values-->
+            <TextBox Text="{Binding Path=Id}" Grid.Column="1" IsEnabled="False"/>
+            <TextBox Text="{Binding Path=NameInput, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" Grid.Row="1"/>
+            <TextBox Text="{Binding Path=InventoryInput, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" Grid.Row="2"/>
+            <TextBox Text="{Binding Path=PriceInput, UpdateSourceTrigger=PropertyChanged}"  Grid.Column="1" Grid.Row="3"/>
+            <StackPanel Grid.Column="1" Grid.Row="4" >
+                <Grid >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Text="{Binding Path=MaxInput, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Label Grid.Column="1" Content="Min" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                    <TextBox Text="{Binding Path=MinInput, UpdateSourceTrigger=PropertyChanged}" Grid.Column="2"/>
+                </Grid>
+                <Label Foreground="Red" Visibility="{Binding MinMaxMessageVisible}" Content="Max must be larger than Min"/>
+            </StackPanel>
+            
+            <TextBox Text="{Binding Path=MachineIdInput, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding InHouseVisible}" Grid.Column="1" Grid.Row="5"/>
+            <TextBox Text="{Binding Path=CompanyNameInput}" Visibility="{Binding OutsourcedVisible}" Grid.Column="1" Grid.Row="5" />
+        </Grid>
+        
+        <!--buttons-->
+        <DockPanel Grid.Row="2" LastChildFill="False">
+            <Button DockPanel.Dock="Right" Content="Cancel" Margin="5 0" Click="CancelButton_Click"/>
+            <Button DockPanel.Dock="Right" Content="Save" Margin="5 0" Command="{Binding SavePartCommand}" CommandParameter="{Binding ElementName=PartView}"/>
+        </DockPanel>
     </Grid>
-</Page>
+</Window>

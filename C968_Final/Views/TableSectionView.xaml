@@ -7,33 +7,37 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              x:Name="root">
-    <DockPanel Grid.Row="1">
+    <DockPanel Grid.Row="1" LastChildFill="True">
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button x:Name="SearchButton" Margin="0,0,16,0" Padding="16,4" Content="Search" Click="SearchButton_Click"/>
-            <Border BorderThickness="1" BorderBrush="Black">
-                <TextBlock x:Name="SearchText" Width="150px" />
-            </Border>
+            <Button Command="{Binding SearchTableItemsCommand}" CommandParameter="{Binding ElementName=SearchText, Path=Text}" Margin="0,0,16,0" Padding="16,4" Content="Search" Click="SearchButton_Click"/>
+            <TextBox x:Name="SearchText" Width="150px" Margin="0"/>
         </StackPanel>
         <Label Content="{Binding TableName}" DockPanel.Dock="Top" Margin="10,0"/>
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16">
-            <Button Content="Add" Margin="16,0,0,0" Padding="16,4" x:Name="AddBttn" Command="{Binding AddTableItemCommand"/>
-            <Button Content="Modify" Margin="16,0,0,0" Padding="16,4" x:Name="ModiftyBttn" Click="ModiftyBttn_Click"/>
-            <Button Content="Delete" Margin="16,0,0,0" Padding="16,4" x:Name="DeleteBttn" Click="DeleteBttn_Click"/>
+            <Button Content="Add" Margin="16,0,0,0" Command="{Binding AddTableItemCommand}"/>
+            <Button Content="Modify" Margin="16,0,0,0" Command="{Binding EditTableItemCommand}" CommandParameter="{Binding ElementName=DataItems, Path=SelectedItem}"/>
+            <Button Content="Delete" Margin="16,0,0,0" Command="{Binding DeleteTableItemCommand}" CommandParameter="{Binding ElementName=DataItems, Path=SelectedItem}"/>
+            <Button Content="Add Dummys" Margin="16,0,0,0" Command="{Binding AddDummyTableItemsCommand}" CommandParameter="{Binding ElementName=DataItems, Path=SelectedItem}"/>
         </StackPanel>
-        <ListView ItemsSource="{Binding TableItems}">
-            <ListView.View>
-                <GridView AllowsColumnReorder="true" ColumnHeaderToolTip="{Binding Title}">
-                    <GridView.Columns>
-                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Path=Name}"/>
-                        <GridViewColumn Header="Inventory" DisplayMemberBinding="{Binding Path=Name}"/>
-                        <GridViewColumn Header="Price" DisplayMemberBinding="{Binding Path=Name}"/>
-                        <GridViewColumn Header="Min" DisplayMemberBinding="{Binding Path=Name}"/>
-                        <GridViewColumn Header="Max" DisplayMemberBinding="{Binding Path=Name}"/>
-                    </GridView.Columns>
-                </GridView>
-            </ListView.View>
-        </ListView>
-        
+        <Label Content="{Binding ErrorMessage}" 
+               Visibility="{Binding ShowErrorMessage}"
+               DockPanel.Dock="Bottom" 
+               HorizontalAlignment="Right"
+               Foreground="Red"/>
+        <DataGrid x:Name="DataItems" ItemsSource="{Binding TableItems}" SelectedItem="{Binding SelectedTableItem}" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding Id}" Width="*">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding DataContext.IdTitle, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                <DataGridTextColumn Header="Inventory" Binding="{Binding InStock}" Width="*"/>
+                <DataGridTextColumn Header="Price" Binding="{Binding Price}" Width="*"/>
+                <DataGridTextColumn Header="Min" Binding="{Binding Min}" Width="*"/>
+                <DataGridTextColumn Header="Max" Binding="{Binding Max}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
     </DockPanel>
 
 </UserControl>
