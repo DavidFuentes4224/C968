@@ -1,4 +1,5 @@
-﻿using System;
+﻿using C968_Final.Stores;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,8 +7,14 @@ using System.Threading.Tasks;
 
 namespace C968_Final.Models
 {
-    class Inventory
+    public sealed class Inventory
     {
+
+        public Inventory(ProductStore productStore, PartStore partStore)
+        {
+            this.productStore = productStore;
+        }
+
         public List<Product> Products { get; set; }
         public List<PartBase> AllParts { get; set; }
 
@@ -51,5 +58,6 @@ namespace C968_Final.Models
             throw new NotImplementedException();
         }
 
+        private readonly ProductStore productStore;
     }
 }

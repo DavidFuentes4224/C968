@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace C968_Final.Models
 {
-    class OutsourcedPart : PartBase
+    public sealed class OutsourcedPart : PartBase
     {
         public OutsourcedPart(string companyName, PartBase part)
         {
             CompanyName = companyName;
-            Id = part.Id;
+            PartID = part.PartID;
             Name = part.Name;
             Price = part.Price;
             InStock = part.InStock;

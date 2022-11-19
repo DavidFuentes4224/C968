@@ -6,6 +6,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary>
+                    <BooleanToVisibilityConverter x:Key="BooleanToVisibilty"/>
                     <Style TargetType="TextBox">
                         <Setter Property="Padding" Value="2 1" />
                         <Setter Property="Margin" Value="5 5"/>
@@ -32,13 +33,6 @@
                                             CornerRadius="3">
                                             <ScrollViewer x:Name="PART_ContentHost" />
                                         </Border>
-                                        <ItemsControl FontSize="12" ItemsSource="{TemplateBinding Validation.Errors}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock Foreground="Red" Text="{Binding ErrorContent}"/>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
                                     </StackPanel>
                                 </ControlTemplate>
                             </Setter.Value>
@@ -46,6 +40,9 @@
                         <Style.Triggers>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.3" />
+                            </Trigger>
+                            <Trigger Property="Validation.HasError" Value="True">
+                                <Setter Property="BorderBrush" Value="Red"/>
                             </Trigger>
                         </Style.Triggers>
                     </Style>

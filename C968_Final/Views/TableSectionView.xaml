@@ -26,7 +26,7 @@
                Foreground="Red"/>
         <DataGrid x:Name="DataItems" ItemsSource="{Binding TableItems}" SelectedItem="{Binding SelectedTableItem}" IsReadOnly="True">
             <DataGrid.Columns>
-                <DataGridTextColumn Binding="{Binding Id}" Width="*">
+                <DataGridTextColumn Binding="{Binding DisplayID}" Width="*">
                     <DataGridTextColumn.Header>
                         <TextBlock Text="{Binding DataContext.IdTitle, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
                     </DataGridTextColumn.Header>

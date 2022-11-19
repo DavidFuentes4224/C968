@@ -16,9 +16,11 @@ namespace C968_Final.Stores
             m_partByPartId = new Dictionary<int, PartBase>();
         }
 
+        public int NextId { get => m_partId; }
+
         public void AddPart(PartBase newPart)
         {
-            newPart.Id = m_partId;
+            newPart.PartID = m_partId;
             m_partByPartId.Add(m_partId, newPart);
             ++m_partId;
         }
@@ -40,7 +42,7 @@ namespace C968_Final.Stores
             if (ids is null)
                 return parts;
 
-            parts.AddRange(m_partByPartId.Values.Where(part => ids.Contains(part.Id.Value)));
+            parts.AddRange(m_partByPartId.Values.Where(part => ids.Contains(part.PartID)));
             return parts;
         }
 

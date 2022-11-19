@@ -11,7 +11,7 @@ namespace C968_Final.Models
         public InhousePart(int machineId, PartBase part)
         {
             MachineId = machineId;
-            Id = part.Id;
+            PartID = part.PartID;
             Name = part.Name;
             Price = part.Price;
             InStock = part.InStock;

@@ -16,9 +16,11 @@ namespace C968_Final.Stores
             m_productByProductId = new Dictionary<int, Product>();
         }
 
+        public int NextId { get => m_productId; }
+
         public void AddProduct(Product newProduct)
         {
-            newProduct.Id = m_productId;
+            newProduct.ProductID = m_productId;
             m_productByProductId.Add(m_productId, newProduct);
             m_productId++;
         }
