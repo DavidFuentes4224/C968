@@ -4,15 +4,15 @@
 winexe
 C#
 .cs
-C:\Users\hobom\Documents\C968\C968_Final\obj\Debug\net5.0-windows\
+C:\Users\hobom\source\repos\C968_Final\C968_Final\obj\Debug\net5.0-windows\
 C968_Final
 none
 false
 TRACE;DEBUG;NET;NET5_0;NETCOREAPP
-C:\Users\hobom\Documents\C968\C968_Final\App.xaml
+C:\Users\hobom\source\repos\C968_Final\C968_Final\App.xaml
 5-1747168332
 
-31-2095472544
+32-832844906
 193-1891726104
 Controls\NumericTextBox.xaml;MainWindow.xaml;Views\AddOrModifyPart.xaml;Views\AddOrModifyProduct.xaml;Views\TableSectionView.xaml;
 

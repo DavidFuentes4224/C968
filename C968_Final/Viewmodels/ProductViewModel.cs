@@ -16,16 +16,16 @@ namespace C968_Final.Viewmodels
 {
     public class ProductViewModel : ViewModelBase, INotifyDataErrorInfo
     {
-        public ProductViewModel(Product model, PartStore partStore, ProductStore productStore, TableActions.Action action)
+        public ProductViewModel(Product model, Inventory inventory, TableActions.Action action)
         {
-            if (action == TableActions.Action.ADD)
+            m_indicatedAction = action;
+            if (m_indicatedAction == TableActions.Action.ADD)
                 Title = "Add Product";
             else
                 Title = "Update Product";
 
             m_errorViewModel = new ErrorViewModel();
-            m_productStore = productStore;
-            m_partStore = partStore;
+            m_inventory = inventory;
 
             InputErrors = new ObservableCollection<string>();
 
@@ -40,10 +40,10 @@ namespace C968_Final.Viewmodels
             MinInput = model.Min.ToString();
 
 
-            var allParts = partStore.GetParts();
+            var allParts = m_inventory.AllParts;
             m_candidateParts = new ObservableCollection<TableItem>(allParts);
 
-            var productParts = partStore.GetParts(model.AssociatedParts);
+            var productParts = m_inventory.LookupParts(model.AssociatedPartIds);
             m_productParts = new ObservableCollection<TableItem>(productParts);
 
             if (productParts.Count == 0)
@@ -74,10 +74,10 @@ namespace C968_Final.Viewmodels
 
         public string InventoryInput
         {
-            get => m_inventory;
+            get => m_productInventory;
             set
             {
-                m_inventory = value;
+                m_productInventory = value;
                 ValidateInputs(nameof(InventoryInput));
             }
         }
@@ -119,7 +119,7 @@ namespace C968_Final.Viewmodels
         {
             get
             {
-                var allPartsCount = m_partStore.GetParts().Count();
+                var allPartsCount = m_inventory.AllParts.Count();
                 var filteredPartsCount = CandidateParts.Count();
                 var hiddenPartsText = $"({allPartsCount - filteredPartsCount} hidden)";
                 return $"Candidate Parts ({filteredPartsCount}) {(allPartsCount != filteredPartsCount ? hiddenPartsText : "")}";
@@ -142,7 +142,7 @@ namespace C968_Final.Viewmodels
 
         public IEnumerable GetErrors(string propertyName) => m_errorViewModel.GetErrors(propertyName);
 
-        private bool CanAddPart(object p) => true;
+        private bool CanAddPart(object p) => p is object;
         private void AddPart(IList p)
         {
             if (p == null)
@@ -161,7 +161,7 @@ namespace C968_Final.Viewmodels
 
         }
 
-        private bool CanRemovePart(object p) => true;
+        private bool CanRemovePart(object p) => p is object;
         private void RemovePart(IList p)
         {
             if (p == null)
@@ -173,9 +173,7 @@ namespace C968_Final.Viewmodels
 
             var selectedParts = p.Cast<PartBase>().ToList();
             for(int i = 0; i < selectedParts.Count(); i++)
-            {
                 m_productParts.Remove(selectedParts[i]);
-            }
 
             if (m_productParts.Count() == 0)
                 m_errorViewModel.AddError(nameof(ProductParts), c_partError);
@@ -200,37 +198,32 @@ namespace C968_Final.Viewmodels
                 Max = int.Parse(MaxInput),
                 Min = int.Parse(MinInput),
                 InStock = int.Parse(InventoryInput),
-                AssociatedParts = associatedParts.ToList()
+                AssociatedPartIds = associatedParts.ToList()
             };
 
-            if (int.TryParse(Id, out var id))
-            {
-                m_productStore.UpdateProduct(id, product);
-            }
+            if (m_indicatedAction == TableActions.Action.UPDATE)
+                m_inventory.UpdateProduct(int.Parse(Id), product);
             else
-            {
-                m_productStore.AddProduct(product);
-            }
+                m_inventory.AddProduct(product);
 
             window.Close();
         }
 
         private bool CanSearch(string p) => true;
-        private void SearchItems(string searchText) => RefreshTableItems(searchText?.Trim());
+        private void SearchItems(string searchText) => RefreshTableItems(searchText?.Trim().ToLower());
 
         private void RefreshTableItems(string searchText = null)
         {
             m_candidateParts.Clear();
-            var allParts = m_partStore.GetParts();
+            var allParts = m_inventory.AllParts;
             var filteredParts = allParts
                 .Where(part => searchText is null 
-                || part.Name.Contains(searchText)
+                || part.Name.ToLower().Contains(searchText)
                 || part.PartID.ToString().Contains(searchText));
 
             foreach (var part in filteredParts)
-            {
                 m_candidateParts.Add(part);
-            }
+
             OnPropertyChanged(nameof(CandidateParts));
             OnPropertyChanged(nameof(CandidatePartsTableName));
         }
@@ -266,7 +259,7 @@ namespace C968_Final.Viewmodels
                             m_errorViewModel.AddError(nameof(MaxInput), "Min must be less than or equal to Max");
                         }
 
-                        if (!int.TryParse(m_inventory, out var inventory) || inventory <= 0)
+                        if (!int.TryParse(m_productInventory, out var inventory) || inventory <= 0)
                             m_errorViewModel.AddError(nameof(InventoryInput), "Inventory must be above 0");
                         else if (!ValidationUtility.IsInRange(inventory, min, max))
                             m_errorViewModel.AddError(nameof(InventoryInput), "Inventory must be within Min and Max");
@@ -301,8 +294,7 @@ namespace C968_Final.Viewmodels
         }
 
         readonly ErrorViewModel m_errorViewModel;
-        readonly ProductStore m_productStore;
-        readonly PartStore m_partStore;
+        readonly Inventory m_inventory;
 
         const string c_partError = "Product requires at least 1 part.";
 
@@ -311,10 +303,10 @@ namespace C968_Final.Viewmodels
         ObservableCollection<string> inputErrors;
 
         string m_name;
-        string m_inventory;
+        string m_productInventory;
         string m_price;
         string m_max;
         string m_min;
-        
+        TableActions.Action m_indicatedAction;
     }
 }

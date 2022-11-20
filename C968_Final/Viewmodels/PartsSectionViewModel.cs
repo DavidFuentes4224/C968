@@ -18,10 +18,8 @@ namespace C968_Final.Viewmodels
 {
     public class PartsSectionViewModel : ViewModelBase
     {
-        public PartsSectionViewModel(PartStore partStore, ProductStore productStore)
+        public PartsSectionViewModel(Inventory inventory)
         {
-            m_partStore = partStore;
-            m_productStore = productStore;
             m_tableItems = new ObservableCollection<TableItem>();
 
             ShowErrorMessage = Visibility.Hidden;
@@ -31,6 +29,7 @@ namespace C968_Final.Viewmodels
             DeleteTableItemCommand = new RelayCommand<PartBase>(DeleteItem, CanDeleteItem);
             AddDummyTableItemsCommand = new RelayCommand<object>(AddDummyItems, CanAddDummys);
             SearchTableItemsCommand = new RelayCommand<string>(SearchItems, CanSearch);
+            m_inventory = inventory;
         }
 
         public RelayCommand<object> AddTableItemCommand { get; set; }
@@ -44,7 +43,7 @@ namespace C968_Final.Viewmodels
         {
             get
             {
-                var allPartsCount = m_partStore.GetParts().Count();
+                var allPartsCount = m_inventory.AllParts.Count();
                 var filteredPartsCount = TableItems.Count();
                 var hiddenPartsText = $"({allPartsCount - filteredPartsCount} hidden)";
                 return $"Parts ({filteredPartsCount} results) {(allPartsCount != filteredPartsCount ? hiddenPartsText : "")}";
@@ -73,17 +72,17 @@ namespace C968_Final.Viewmodels
                     return;
 
                 var selectedPartId = ((PartBase)m_selectedTableItem).PartID;
-                ShowErrorMessage = m_productStore.CanRemovePart(selectedPartId) ? Visibility.Collapsed : Visibility.Visible;
+                ShowErrorMessage = m_inventory.CanRemovePart(selectedPartId) ? Visibility.Hidden : Visibility.Visible;
             }
         }
 
         private bool CanAddItem(object p) => true;
         private void AddItem(object p)
         {
-            var nextId = m_partStore.NextId;
-            var newPart = new PartBase();
+            var nextId = m_inventory.NextPartId;
+            var newPart = new PartBase() { PartID = nextId };
 
-            var partViewModel = new PartViewModel(true, newPart, m_partStore, TableActions.Action.ADD);
+            var partViewModel = new PartViewModel(true, newPart, m_inventory, TableActions.Action.ADD);
             var partView = new AddOrModifyPart() { DataContext = partViewModel };
             partView.ShowDialog();
 
@@ -97,14 +96,14 @@ namespace C968_Final.Viewmodels
                 return;
 
             var isInHouse = part is InhousePart;
-            var partViewModel = new PartViewModel(isInHouse, part, m_partStore, TableActions.Action.UPDATE);
+            var partViewModel = new PartViewModel(isInHouse, part, m_inventory, TableActions.Action.UPDATE);
             var partView = new AddOrModifyPart() { DataContext = partViewModel };
             partView.ShowDialog();
 
             RefreshTableItems();
         }
 
-        private bool CanDeleteItem(PartBase p) => p is object && m_productStore.CanRemovePart(p.PartID);
+        private bool CanDeleteItem(PartBase p) => p is object && m_inventory.CanRemovePart(p.PartID);
         private void DeleteItem(object p)
         {
             if (!(p is PartBase part))
@@ -114,7 +113,7 @@ namespace C968_Final.Viewmodels
             if (diaglogResult != MessageBoxResult.Yes)
                 return;
 
-            m_partStore.DeletePart(part.PartID);
+            m_inventory.DeletePart(part);
             SelectedTableItem = null;
             RefreshTableItems();
         }
@@ -133,21 +132,21 @@ namespace C968_Final.Viewmodels
 
             var partList = new List<PartBase> { part1, part2, part3, outPart1, outPart2, outPart3 };
             foreach (var part in partList)
-                m_partStore.AddPart(part);
+                m_inventory.AddPart(part);
 
             RefreshTableItems();
         }
 
         private bool CanSearch(string p) => true;
-        private void SearchItems(string searchText) => RefreshTableItems(searchText?.Trim());
+        private void SearchItems(string searchText) => RefreshTableItems(searchText?.Trim().ToLower());
 
         private void RefreshTableItems(string searchText = null)
         {
             m_tableItems.Clear();
-            var allParts = m_partStore.GetParts();
+            var allParts = m_inventory.AllParts;
             var filteredParts = allParts
                 .Where(part => searchText is null 
-                || part.Name.Contains(searchText) 
+                || part.Name.ToLower().Contains(searchText) 
                 || part.PartID.ToString().Contains(searchText));
             foreach (var part in filteredParts)
             {
@@ -158,11 +157,9 @@ namespace C968_Final.Viewmodels
         }
 
         readonly ObservableCollection<TableItem> m_tableItems;
-        readonly PartStore m_partStore;
-        readonly ProductStore m_productStore;
-        
+        readonly Inventory m_inventory;
+
         TableItem m_selectedTableItem;
         Visibility m_showErrorMessage;
-
     }
 }

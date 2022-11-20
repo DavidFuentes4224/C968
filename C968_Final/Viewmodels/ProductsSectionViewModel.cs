@@ -15,10 +15,9 @@ namespace C968_Final.Viewmodels
 {
     public class ProductsSectionViewModel : ViewModelBase
     {
-        public ProductsSectionViewModel(PartStore partStore, ProductStore productStore)
+        public ProductsSectionViewModel(Inventory inventory)
         {
-            m_partStore = partStore;
-            m_productStore = productStore;
+            m_inventory = inventory;
             m_tableItems = new ObservableCollection<TableItem>();
 
             AddTableItemCommand = new RelayCommand<object>(AddItem, CanAddItem);
@@ -39,7 +38,7 @@ namespace C968_Final.Viewmodels
         {
             get
             {
-                var allProductsCount = m_productStore.GetProducts().Count();
+                var allProductsCount = m_inventory.Products.Count();
                 var filteredProductsCount = TableItems.Count();
                 var hiddenPartsText = $"({allProductsCount - filteredProductsCount} hidden)";
                 return $"Products ({filteredProductsCount} results) {(allProductsCount != filteredProductsCount ? hiddenPartsText : "")}";
@@ -52,10 +51,10 @@ namespace C968_Final.Viewmodels
         private bool CanAddItem(object p) => true;
         private void AddItem(object p)
         {
-            var nextId = m_productStore.NextId;
+            var nextId = m_inventory.NextProductId;
             var item1 = new Product() { ProductID = nextId};
 
-            var productViewModel = new ProductViewModel(item1, m_partStore, m_productStore, TableActions.Action.ADD);
+            var productViewModel = new ProductViewModel(item1, m_inventory, TableActions.Action.ADD);
             var productView = new AddOrModifyProduct() { DataContext = productViewModel };
             productView.ShowDialog();
 
@@ -68,7 +67,7 @@ namespace C968_Final.Viewmodels
             if (!(p is Product product))
                 return;
 
-            var productViewModel = new ProductViewModel(product, m_partStore, m_productStore, TableActions.Action.UPDATE);
+            var productViewModel = new ProductViewModel(product, m_inventory, TableActions.Action.UPDATE);
             var productView = new AddOrModifyProduct() { DataContext = productViewModel };
             productView.ShowDialog();
 
@@ -85,22 +84,22 @@ namespace C968_Final.Viewmodels
             if (diaglogResult != MessageBoxResult.Yes)
                 return;
 
-            m_productStore.DeleteProduct(product.ProductID);
+            m_inventory.RemoveProduct(product.ProductID);
             RefreshTableItems();
         }
 
         private bool CanSearch(string p) => true;
-        private void SearchItems(string searchText) => RefreshTableItems(searchText?.Trim());
+        private void SearchItems(string searchText) => RefreshTableItems(searchText?.Trim().ToLower());
 
         private void RefreshTableItems(string searchText = null)
         {
             m_tableItems.Clear();
-            var allProducts = m_productStore.GetProducts();
+            var allProducts = m_inventory.Products;
             var filteredProducts = allProducts
                 .Where(product => searchText is null
-                || product.Name.Contains(searchText)
+                || product.Name.ToLower().Contains(searchText)
                 || product.ProductID.ToString().Contains(searchText));
-            foreach (var part in m_productStore.GetProducts())
+            foreach (var part in filteredProducts)
             {
                 m_tableItems.Add(part);
             }
@@ -109,7 +108,6 @@ namespace C968_Final.Viewmodels
         }
 
         readonly ObservableCollection<TableItem> m_tableItems;
-        readonly ProductStore m_productStore;
-        readonly PartStore m_partStore;
+        readonly Inventory m_inventory;
     }
 }

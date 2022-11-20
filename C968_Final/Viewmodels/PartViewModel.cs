@@ -17,14 +17,15 @@ namespace C968_Final.Viewmodels
 {
     public class PartViewModel : ViewModelBase, INotifyDataErrorInfo
     {
-        public PartViewModel(bool isInhouse, PartBase model, PartStore partStore, TableActions.Action action)
+        public PartViewModel(bool isInhouse, PartBase model, Inventory inventory, TableActions.Action action)
         {
-            if (action == TableActions.Action.ADD)
+            m_indicatedAction = action;
+            if (m_indicatedAction == TableActions.Action.ADD)
                 Title = "Add Part";
             else
                 Title = "Update Part";
 
-            m_partStore = partStore;
+            m_inventory = inventory;
             m_errorViewModel = new ErrorViewModel();
             InputErrors = new ObservableCollection<string>();
 
@@ -58,6 +59,8 @@ namespace C968_Final.Viewmodels
             RadioCheckedCommand = new RelayCommand<string>(OnRadioChecked, CanCheckRadio);
         }
 
+        public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+
         public RelayCommand<Window> SavePartCommand { get; private set; }
         public RelayCommand<string> RadioCheckedCommand { get; private set; }
 
@@ -75,10 +78,10 @@ namespace C968_Final.Viewmodels
 
         public string InventoryInput
         {
-            get => m_inventory;
+            get => m_partInventory;
             set
             {
-                m_inventory = value;
+                m_partInventory = value;
                 ValidateInputs(nameof(InventoryInput));
             }
         }
@@ -156,21 +159,22 @@ namespace C968_Final.Viewmodels
             };
 
             // Update part.
-            if (int.TryParse(Id, out var id))
+            if (m_indicatedAction == TableActions.Action.UPDATE)
             {
+                var id = int.Parse(Id);
                 part.PartID = id;
 
-                if (int.TryParse(MachineIdInput, out var machineId))
-                    m_partStore.UpdatePart(id, new InhousePart(machineId, part));
+                if (IsInHouse)
+                    m_inventory.UpdatePart(id, new InhousePart(int.Parse(MachineIdInput), part));
                 else
-                    m_partStore.UpdatePart(id, new OutsourcedPart(CompanyNameInput, part));
+                    m_inventory.UpdatePart(id, new OutsourcedPart(CompanyNameInput, part));
             }
             else
             {
-                if (int.TryParse(MachineIdInput, out var machineId))
-                    m_partStore.AddPart(new InhousePart(machineId, part));
+                if (IsInHouse)
+                    m_inventory.AddPart(new InhousePart(int.Parse(MachineIdInput), part));
                 else
-                    m_partStore.AddPart(new OutsourcedPart(CompanyNameInput, part));
+                    m_inventory.AddPart(new OutsourcedPart(CompanyNameInput, part));
             }
 
             window.Close();
@@ -187,6 +191,7 @@ namespace C968_Final.Viewmodels
             OutsourcedVisible = radioValue == c_inHouse ? Visibility.Hidden : Visibility.Visible;
             OnPropertyChanged(nameof(InHouseVisible));
             OnPropertyChanged(nameof(OutsourcedVisible));
+            ValidateInputs(nameof(CompanyNameInput));
 
         }
 
@@ -223,10 +228,14 @@ namespace C968_Final.Viewmodels
                             m_errorViewModel.AddError(nameof(MaxInput), "Min must be less than or equal to Max");
                         }
 
-                        if (!int.TryParse(m_inventory, out var inventory) || inventory <= 0)
+                        if (!int.TryParse(m_partInventory, out var inventory) || inventory <= 0)
                             m_errorViewModel.AddError(nameof(InventoryInput), "Inventory must be above 0");
                         else if (!ValidationUtility.IsInRange(inventory, min, max))
                             m_errorViewModel.AddError(nameof(InventoryInput), "Inventory must be within Min and Max");
+
+                        OnPropertyChanged(nameof(InventoryInput));
+                        OnPropertyChanged(nameof(MinInput));
+                        OnPropertyChanged(nameof(MaxInput));
                         break;
                     }
                 case nameof(PriceInput):
@@ -253,7 +262,7 @@ namespace C968_Final.Viewmodels
                         }
                         else
                         {
-                            if (!(m_comanyName.Trim().Length > 0))
+                            if (!(m_comanyName?.Trim().Length > 0))
                                 m_errorViewModel.AddError(nameof(CompanyNameInput), "Company ID must contain an valid value.");
                         }
                         break;
@@ -266,20 +275,19 @@ namespace C968_Final.Viewmodels
                 InputErrors.Add(error);
         }
 
-        readonly PartStore m_partStore;
+        readonly Inventory m_inventory;
         readonly ErrorViewModel m_errorViewModel;
 
         const string c_inHouse = "InHouse";
 
         string m_name;
-        string m_inventory;
+        string m_partInventory;
         string m_price;
         string m_max;
         string m_min;
         string m_machineId;
         string m_comanyName;
-        private ObservableCollection<string> inputErrors;
-
-        public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+        ObservableCollection<string> inputErrors;
+        TableActions.Action m_indicatedAction;
     }
 }

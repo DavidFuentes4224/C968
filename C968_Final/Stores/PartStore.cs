@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace C968_Final.Stores
 {
-    public class PartStore
+    public sealed class PartStore
     {
         public PartStore()
         {
@@ -25,15 +25,11 @@ namespace C968_Final.Stores
             ++m_partId;
         }
 
-        public void UpdatePart(int partId, PartBase newPart)
-        {
-            m_partByPartId[partId] = newPart;
-        }
+        public void UpdatePart(int partId, PartBase newPart) => m_partByPartId[partId] = newPart;
 
-        public void DeletePart(int partId)
-        {
-            m_partByPartId.Remove(partId);
-        }
+        public bool DeletePart(int partId) => m_partByPartId.Remove(partId);
+
+        public Part GetPart(int partId) => m_partByPartId.TryGetValue(partId, out var part) ? part : null;
 
         public IReadOnlyList<PartBase> GetParts() => m_partByPartId.Values.ToList();
         public IReadOnlyList<PartBase> GetParts(List<int> ids)

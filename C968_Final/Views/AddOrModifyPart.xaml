@@ -6,8 +6,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:utility="clr-namespace:C968_Final.Utility"
         mc:Ignorable="d" 
-        MinHeight="550" MinWidth="400"
-      Height="550" Width="400"
+        Height="550" Width="500"
+        MinHeight="550" MinWidth="500"
       Title="{Binding Title}">
 
     <Grid Background="GhostWhite">
@@ -25,7 +25,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Label Content="Add part" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <Label Content="{Binding Title}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             <RadioButton Grid.Column="1" 
                          GroupName="PartType"
                          Content="In-House" 
@@ -39,6 +39,7 @@
                          Content="Outsourced" 
                          HorizontalAlignment="Center" 
                          VerticalAlignment="Center"
+                         IsChecked="{Binding IsInHouse, Converter={StaticResource InverseBoolean}}"
                          Command="{Binding RadioCheckedCommand}"
                          CommandParameter="Outsourced"/>
         </Grid>

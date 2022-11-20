@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\hobom\\Documents\\C968\\C968_Final\\C968_Final.csproj",
+      "projectUniqueName": "C:\\Users\\hobom\\source\\repos\\C968_Final\\C968_Final\\C968_Final.csproj",
       "projectName": "C968_Final",
-      "projectPath": "C:\\Users\\hobom\\Documents\\C968\\C968_Final\\C968_Final.csproj",
+      "projectPath": "C:\\Users\\hobom\\source\\repos\\C968_Final\\C968_Final\\C968_Final.csproj",
       "packagesPath": "C:\\Users\\hobom\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\hobom\\Documents\\C968\\C968_Final\\obj\\",
+      "outputPath": "C:\\Users\\hobom\\source\\repos\\C968_Final\\C968_Final\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\hobom\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -63,7 +63,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.200\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.401\\RuntimeIdentifierGraph.json"
       }
     }
   }
