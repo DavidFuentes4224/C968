@@ -27,7 +27,6 @@ namespace C968_Final.Viewmodels
             AddTableItemCommand = new RelayCommand<object>(AddItem, CanAddItem);
             EditTableItemCommand = new RelayCommand<PartBase>(EditItem, CanEditItem);
             DeleteTableItemCommand = new RelayCommand<PartBase>(DeleteItem, CanDeleteItem);
-            AddDummyTableItemsCommand = new RelayCommand<object>(AddDummyItems, CanAddDummys);
             SearchTableItemsCommand = new RelayCommand<string>(SearchItems, CanSearch);
             m_inventory = inventory;
         }
@@ -35,7 +34,6 @@ namespace C968_Final.Viewmodels
         public RelayCommand<object> AddTableItemCommand { get; set; }
         public RelayCommand<PartBase> EditTableItemCommand { get; set; }
         public RelayCommand<PartBase> DeleteTableItemCommand { get; set; }
-        public RelayCommand<object> AddDummyTableItemsCommand { get; set; }
         public RelayCommand<string> SearchTableItemsCommand { get; set; }
 
         public string IdTitle => "Part ID";
@@ -115,25 +113,6 @@ namespace C968_Final.Viewmodels
 
             m_inventory.DeletePart(part);
             SelectedTableItem = null;
-            RefreshTableItems();
-        }
-
-        private bool CanAddDummys(object p) => true;
-        private void AddDummyItems(object p)
-        {
-            var partId = 0;
-            var part1 = new InhousePart(1, new PartBase() { PartID = partId++, InStock = 1, Max = 5, Min = 1, Name = "Part 1", Price = 5.99M });;
-            var part2 = new InhousePart(2, new PartBase() { PartID = partId++, InStock = 5, Max = 5, Min = 1, Name = "Part 2", Price = 12.99M });
-            var part3 = new InhousePart(3, new PartBase() { PartID = partId++, InStock = 2, Max = 5, Min = 1, Name = "Part 3", Price = 55.99M });
-
-            var outPart1 = new OutsourcedPart("Comp 1", new PartBase() { PartID = partId++, InStock = 1, Max = 5, Min = 1, Name = "O Part 1", Price = 9.99M });
-            var outPart2 = new OutsourcedPart("Comp 2", new PartBase() { PartID = partId++, InStock = 1, Max = 5, Min = 1, Name = "O Part 2", Price = 21.99M });
-            var outPart3 = new OutsourcedPart("Comp 3", new PartBase() { PartID = partId++, InStock = 1, Max = 5, Min = 1, Name = "O Part 3", Price = 38.99M });
-
-            var partList = new List<PartBase> { part1, part2, part3, outPart1, outPart2, outPart3 };
-            foreach (var part in partList)
-                m_inventory.AddPart(part);
-
             RefreshTableItems();
         }
 

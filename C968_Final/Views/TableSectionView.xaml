@@ -17,7 +17,6 @@
             <Button Content="Add" Margin="16,0,0,0" Command="{Binding AddTableItemCommand}"/>
             <Button Content="Modify" Margin="16,0,0,0" Command="{Binding EditTableItemCommand}" CommandParameter="{Binding ElementName=DataItems, Path=SelectedItem}"/>
             <Button Content="Delete" Margin="16,0,0,0" Command="{Binding DeleteTableItemCommand}" CommandParameter="{Binding ElementName=DataItems, Path=SelectedItem}"/>
-            <Button Content="Add Dummys" Margin="16,0,0,0" Command="{Binding AddDummyTableItemsCommand}" CommandParameter="{Binding ElementName=DataItems, Path=SelectedItem}"/>
         </StackPanel>
         <Label Content="{Binding ErrorMessage}" 
                Visibility="{Binding ShowErrorMessage}"

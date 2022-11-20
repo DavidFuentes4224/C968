@@ -29,7 +29,6 @@ namespace C968_Final.Viewmodels
         public RelayCommand<object> AddTableItemCommand { get; set; }
         public RelayCommand<Product> EditTableItemCommand { get; set; }
         public RelayCommand<Product> DeleteTableItemCommand { get; set; }
-        public RelayCommand<object> AddDummyTableItemsCommand { get; set; }
         public RelayCommand<string> SearchTableItemsCommand { get; set; }
 
 
