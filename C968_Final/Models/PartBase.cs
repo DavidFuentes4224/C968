@@ -6,13 +6,8 @@ using System.Threading.Tasks;
 
 namespace C968_Final.Models
 {
-    public class PartBase : TableItem
+    public class PartBase : Part
     {
-        public int? Id { get; set; }
-        public string Name { get; set; }
-        public float Price { get; set; }
-        public int InStock { get; set; }
-        public int Min { get; set; }
-        public int Max { get; set; }
+        public string DisplayID { get => PartID.ToString(); }
     }
 }

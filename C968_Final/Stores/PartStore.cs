@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace C968_Final.Stores
 {
-    public class PartStore
+    public sealed class PartStore
     {
         public PartStore()
         {
@@ -16,22 +16,20 @@ namespace C968_Final.Stores
             m_partByPartId = new Dictionary<int, PartBase>();
         }
 
+        public int NextId { get => m_partId; }
+
         public void AddPart(PartBase newPart)
         {
-            newPart.Id = m_partId;
+            newPart.PartID = m_partId;
             m_partByPartId.Add(m_partId, newPart);
             ++m_partId;
         }
 
-        public void UpdatePart(int partId, PartBase newPart)
-        {
-            m_partByPartId[partId] = newPart;
-        }
+        public void UpdatePart(int partId, PartBase newPart) => m_partByPartId[partId] = newPart;
 
-        public void DeletePart(int partId)
-        {
-            m_partByPartId.Remove(partId);
-        }
+        public bool DeletePart(int partId) => m_partByPartId.Remove(partId);
+
+        public Part GetPart(int partId) => m_partByPartId.TryGetValue(partId, out var part) ? part : null;
 
         public IReadOnlyList<PartBase> GetParts() => m_partByPartId.Values.ToList();
         public IReadOnlyList<PartBase> GetParts(List<int> ids)
@@ -40,7 +38,7 @@ namespace C968_Final.Stores
             if (ids is null)
                 return parts;
 
-            parts.AddRange(m_partByPartId.Values.Where(part => ids.Contains(part.Id.Value)));
+            parts.AddRange(m_partByPartId.Values.Where(part => ids.Contains(part.PartID)));
             return parts;
         }
 

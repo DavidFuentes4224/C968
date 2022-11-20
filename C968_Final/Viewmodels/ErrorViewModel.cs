@@ -24,7 +24,17 @@ namespace C968_Final.Viewmodels
             return m_errorsByPropertyName.GetValueOrDefault(propertyName, null);
         }
 
-        public IList<string> GetErroredProperties() => m_errorsByPropertyName.Keys.ToList();
+        public IReadOnlyList<string> GetAllErrors()
+        {
+            var errors = new List<string>();
+            foreach (var kvp in m_errorsByPropertyName)
+            {
+                errors.AddRange((IEnumerable<string>)GetErrors(kvp.Key));
+            }
+            return errors.Distinct().ToList();
+        }
+
+    public IList<string> GetErroredProperties() => m_errorsByPropertyName.Keys.ToList();
 
         public void OnErrorsChanged(string propertyName)
         {

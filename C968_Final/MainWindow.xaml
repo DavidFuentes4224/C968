@@ -6,7 +6,7 @@
         xmlns:v="clr-namespace:C968_Final.Views"
         xmlns:vm="clr-namespace:C968_Final.Viewmodels"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="950">
+        Title="Main Form" Height="450" Width="950">
 
     <Grid>
         <Grid.ColumnDefinitions>

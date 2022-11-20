@@ -16,13 +16,20 @@ namespace C968_Final.Viewmodels
 {
     public class ProductViewModel : ViewModelBase, INotifyDataErrorInfo
     {
-        public ProductViewModel(Product model, PartStore partStore, ProductStore productStore)
+        public ProductViewModel(Product model, Inventory inventory, TableActions.Action action)
         {
-            m_errorViewModel = new ErrorViewModel();
-            m_productStore = productStore;
-            m_partStore = partStore;
+            m_indicatedAction = action;
+            if (m_indicatedAction == TableActions.Action.ADD)
+                Title = "Add Product";
+            else
+                Title = "Update Product";
 
-            Id = model.Id?.ToString();
+            m_errorViewModel = new ErrorViewModel();
+            m_inventory = inventory;
+
+            InputErrors = new ObservableCollection<string>();
+
+            Id = model.ProductID.ToString();
             NameInput = model.Name?.ToString();
             InventoryInput = model.InStock.ToString();
             var priceString = model.Price.ToString();
@@ -33,20 +40,26 @@ namespace C968_Final.Viewmodels
             MinInput = model.Min.ToString();
 
 
-            var allParts = partStore.GetParts();
+            var allParts = m_inventory.AllParts;
             m_candidateParts = new ObservableCollection<TableItem>(allParts);
 
-            var productParts = partStore.GetParts(model.AssociatedParts);
+            var productParts = m_inventory.LookupParts(model.AssociatedPartIds);
             m_productParts = new ObservableCollection<TableItem>(productParts);
 
             if (productParts.Count == 0)
-                m_errorViewModel.AddError(nameof(ProductParts), "Product must contain at least 1 part.");
+            {
+                m_errorViewModel.AddError(nameof(ProductParts), c_partError);
+            }
 
             AddPartCommand = new RelayCommand<IList>(AddPart, CanAddPart);
             DeletePartCommand = new RelayCommand<IList>(RemovePart, CanRemovePart);
             SaveProductCommand = new RelayCommand<Window>(SaveProduct, CanSaveProduct);
             SearchTableItemsCommand = new RelayCommand<string>(SearchItems, CanSearch);
+
+            UpdateErrorsList();
         }
+        
+        public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
         public string Id { get; set; }
         public string NameInput
@@ -55,25 +68,17 @@ namespace C968_Final.Viewmodels
             set
             {
                 m_name = value;
-
-                m_errorViewModel.RemoveError(nameof(NameInput));
-
-                if (!(m_name.Trim().Length > 0))
-                    m_errorViewModel.AddError(nameof(NameInput), "Name must contain a value");
+                ValidateInputs(nameof(NameInput));
             }
         }
 
         public string InventoryInput
         {
-            get => m_inventory;
+            get => m_productInventory;
             set
             {
-                m_inventory = value;
-
-                m_errorViewModel.RemoveError(nameof(InventoryInput));
-                int inventory = 0;
-                if (!int.TryParse(m_inventory, out inventory) || inventory <= 0)
-                    m_errorViewModel.AddError(nameof(InventoryInput), "Inventory must be above 0");
+                m_productInventory = value;
+                ValidateInputs(nameof(InventoryInput));
             }
         }
 
@@ -83,14 +88,7 @@ namespace C968_Final.Viewmodels
             set
             {
                 m_price = value;
-
-                var isDecimal = ValidationUtility.ValueIsDecimalFormat(m_price);
-
-                m_errorViewModel.RemoveError(nameof(PriceInput));
-                if (!isDecimal)
-                    m_errorViewModel.AddError(nameof(PriceInput), "Price must be in decimal format.");
-                if (!float.TryParse(m_price, out var price) || price <= 0)
-                    m_errorViewModel.AddError(nameof(PriceInput), "Price must be above 0");
+                ValidateInputs(nameof(PriceInput));
             }
         }
 
@@ -100,12 +98,7 @@ namespace C968_Final.Viewmodels
             set
             {
                 m_max = value;
-
-                m_errorViewModel.RemoveError(nameof(MaxInput));
-                if (!int.TryParse(m_max, out var max) || max < 0)
-                    m_errorViewModel.AddError(nameof(MaxInput), "");
-
-                ValidateMinMax();
+                ValidateInputs(nameof(MaxInput));
             }
         }
 
@@ -115,12 +108,7 @@ namespace C968_Final.Viewmodels
             set
             {
                 m_min = value;
-
-                m_errorViewModel.RemoveError(nameof(MinInput));
-                if (!int.TryParse(m_min, out var min) || min < 0)
-                    m_errorViewModel.AddError(nameof(MinInput), "");
-
-                ValidateMinMax();
+                ValidateInputs(nameof(MinInput));
             }
         }
 
@@ -131,17 +119,19 @@ namespace C968_Final.Viewmodels
         {
             get
             {
-                var allPartsCount = m_partStore.GetParts().Count();
+                var allPartsCount = m_inventory.AllParts.Count();
                 var filteredPartsCount = CandidateParts.Count();
                 var hiddenPartsText = $"({allPartsCount - filteredPartsCount} hidden)";
                 return $"Candidate Parts ({filteredPartsCount}) {(allPartsCount != filteredPartsCount ? hiddenPartsText : "")}";
             }
         }
 
+        public string Title { get; private set; }
+
+        public ObservableCollection<string> InputErrors { get => inputErrors; private set => inputErrors = value; }
+
         public PartBase SelectedAddPart { get; set; }
         public PartBase SelectedRemovePart { get; set; }
-
-        public Visibility MinMaxMessageVisible { get; set; }
 
         public RelayCommand<IList> AddPartCommand { get; private set; }
         public RelayCommand<IList> DeletePartCommand { get; private set; }
@@ -152,7 +142,7 @@ namespace C968_Final.Viewmodels
 
         public IEnumerable GetErrors(string propertyName) => m_errorViewModel.GetErrors(propertyName);
 
-        private bool CanAddPart(object p) => true;
+        private bool CanAddPart(object p) => p is object;
         private void AddPart(IList p)
         {
             if (p == null)
@@ -160,29 +150,37 @@ namespace C968_Final.Viewmodels
 
             var selectedParts = p.Cast<PartBase>();
             foreach(var part in selectedParts)
-            {
                 m_productParts.Add(part);
-            }
 
             if (m_productParts.Count() > 0)
                 m_errorViewModel.RemoveError(nameof(ProductParts));
+            else
+                m_errorViewModel.AddError(nameof(ProductParts), c_partError);
+
+            UpdateErrorsList();
+
         }
 
-        private bool CanRemovePart(object p) => true;
+        private bool CanRemovePart(object p) => p is object;
         private void RemovePart(IList p)
         {
             if (p == null)
                 return;
 
+            var diaglogResult = MessageBox.Show("Are you sure?", "Delete Confirmation", MessageBoxButton.YesNo);
+            if (diaglogResult != MessageBoxResult.Yes)
+                return;
+
             var selectedParts = p.Cast<PartBase>().ToList();
-            // fix 
             for(int i = 0; i < selectedParts.Count(); i++)
-            {
                 m_productParts.Remove(selectedParts[i]);
-            }
 
             if (m_productParts.Count() == 0)
-                m_errorViewModel.AddError(nameof(ProductParts), "Product must contain at least 1 part.");
+                m_errorViewModel.AddError(nameof(ProductParts), c_partError);
+            else
+                m_errorViewModel.RemoveError(nameof(ProductParts));
+
+            UpdateErrorsList();
         }
 
         private bool CanSaveProduct(object p) => !m_errorViewModel.HasErrors;
@@ -191,9 +189,7 @@ namespace C968_Final.Viewmodels
             if (window is null)
                 return;
 
-            var associatedParts = ProductParts.Select(p => (PartBase)p)
-                .Where(p => p.Id.HasValue)
-                .Select(p => p.Id.Value);
+            var associatedParts = ProductParts.Select(p => (PartBase)p).Select(p => p.PartID);
 
             var product = new Product()
             {
@@ -202,61 +198,115 @@ namespace C968_Final.Viewmodels
                 Max = int.Parse(MaxInput),
                 Min = int.Parse(MinInput),
                 InStock = int.Parse(InventoryInput),
-                AssociatedParts = associatedParts.ToList()
+                AssociatedPartIds = associatedParts.ToList()
             };
 
-            if (int.TryParse(Id, out var id))
-            {
-                m_productStore.UpdateProduct(id, product);
-            }
+            if (m_indicatedAction == TableActions.Action.UPDATE)
+                m_inventory.UpdateProduct(int.Parse(Id), product);
             else
-            {
-                m_productStore.AddProduct(product);
-            }
+                m_inventory.AddProduct(product);
 
             window.Close();
         }
 
         private bool CanSearch(string p) => true;
-        private void SearchItems(string searchText) => RefreshTableItems(searchText?.Trim());
+        private void SearchItems(string searchText) => RefreshTableItems(searchText?.Trim().ToLower());
 
         private void RefreshTableItems(string searchText = null)
         {
             m_candidateParts.Clear();
-            var allParts = m_partStore.GetParts();
-            var filteredParts = allParts.Where(part => searchText is null || part.Name.Contains(searchText));
+            var allParts = m_inventory.AllParts;
+            var filteredParts = allParts
+                .Where(part => searchText is null 
+                || part.Name.ToLower().Contains(searchText)
+                || part.PartID.ToString().Contains(searchText));
+
             foreach (var part in filteredParts)
-            {
                 m_candidateParts.Add(part);
-            }
+
             OnPropertyChanged(nameof(CandidateParts));
             OnPropertyChanged(nameof(CandidatePartsTableName));
         }
 
-        private void ValidateMinMax()
+        private void ValidateInputs(string propName)
         {
-            var shouldShowMessage = !int.TryParse(m_min, out var min)
-                || !int.TryParse(m_max, out var max)
-                || min > max;
+            switch (propName)
+            {
+                case nameof(NameInput):
+                    {
+                        m_errorViewModel.RemoveError(nameof(NameInput));
+                        if (m_name is null || m_name.Trim().Length == 0)
+                            m_errorViewModel.AddError(nameof(NameInput), "Name must contain a valid value.");
+                        break;
+                    }
+                case nameof(InventoryInput):
+                case nameof(MinInput):
+                case nameof(MaxInput):
+                    {
+                        m_errorViewModel.RemoveError(nameof(InventoryInput));
+                        m_errorViewModel.RemoveError(nameof(MinInput));
+                        m_errorViewModel.RemoveError(nameof(MaxInput));
 
-            MinMaxMessageVisible = shouldShowMessage ? Visibility.Visible : Visibility.Collapsed;
-            OnPropertyChanged(nameof(MinMaxMessageVisible));
+                        if (!int.TryParse(m_min, out var min) || min <= 0)
+                            m_errorViewModel.AddError(nameof(MinInput), "Min must be at above 0.");
+
+                        if (!int.TryParse(m_max, out var max) || max <= 0)
+                            m_errorViewModel.AddError(nameof(MaxInput), "Max must be above 0.");
+
+                        if (min > max)
+                        {
+                            m_errorViewModel.AddError(nameof(MinInput), "Min must be less than or equal to Max");
+                            m_errorViewModel.AddError(nameof(MaxInput), "Min must be less than or equal to Max");
+                        }
+
+                        if (!int.TryParse(m_productInventory, out var inventory) || inventory <= 0)
+                            m_errorViewModel.AddError(nameof(InventoryInput), "Inventory must be above 0");
+                        else if (!ValidationUtility.IsInRange(inventory, min, max))
+                            m_errorViewModel.AddError(nameof(InventoryInput), "Inventory must be within Min and Max");
+
+                        OnPropertyChanged(nameof(InventoryInput));
+                        OnPropertyChanged(nameof(MinInput));
+                        OnPropertyChanged(nameof(MaxInput));
+                        break;
+                    }
+                case nameof(PriceInput):
+                    {
+                        m_errorViewModel.RemoveError(nameof(PriceInput));
+
+                        var isDecimal = ValidationUtility.ValueIsDecimalFormat(m_price);
+                        if (!isDecimal)
+                            m_errorViewModel.AddError(nameof(PriceInput), "Price must be in decimal format.");
+                        else if (!float.TryParse(m_price, out var price) || price <= 0)
+                            m_errorViewModel.AddError(nameof(PriceInput), "Price must be above 0");
+                        break;
+                    }
+            }
+
+            UpdateErrorsList();
         }
 
+        private void UpdateErrorsList()
+        {
+            InputErrors.Clear();
+            var allErrors = m_errorViewModel.GetAllErrors();
+            foreach (var error in allErrors)
+                InputErrors.Add(error);
+        }
 
         readonly ErrorViewModel m_errorViewModel;
-        readonly ProductStore m_productStore;
-        readonly PartStore m_partStore;
+        readonly Inventory m_inventory;
+
+        const string c_partError = "Product requires at least 1 part.";
 
         ObservableCollection<TableItem> m_candidateParts;
         ObservableCollection<TableItem> m_productParts;
+        ObservableCollection<string> inputErrors;
 
         string m_name;
-        string m_inventory;
+        string m_productInventory;
         string m_price;
         string m_max;
         string m_min;
-
-        public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+        TableActions.Action m_indicatedAction;
     }
 }

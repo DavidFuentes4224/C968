@@ -1,4 +1,5 @@
-﻿using C968_Final.Stores;
+﻿using C968_Final.Models;
+using C968_Final.Stores;
 using C968_Final.Viewmodels;
 using System;
 using System.Collections.Generic;
@@ -17,21 +18,19 @@ namespace C968_Final
     {
         public App()
         {
-            m_partStore = new PartStore();
-            m_productStore = new ProductStore();
+            m_inventory = new Inventory(new ProductStore(), new PartStore());
         }
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            var partsSection = new PartsSectionViewModel(m_partStore, m_productStore);
-            var productsSection = new ProductsSectionViewModel(m_partStore, m_productStore);
+            var partsSection = new PartsSectionViewModel(m_inventory);
+            var productsSection = new ProductsSectionViewModel(m_inventory);
 
             MainWindow = new MainWindow(){ DataContext = new MainScreenViewModel(partsSection, productsSection) };
             MainWindow.Show();
             base.OnStartup(e);
         }
 
-        readonly PartStore m_partStore;
-        readonly ProductStore m_productStore;
+        readonly Inventory m_inventory;
     }
 }

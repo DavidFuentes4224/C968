@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace C968_Final.Stores
 {
-    public class ProductStore
+    public sealed class ProductStore
     {
         public ProductStore()
         {
@@ -16,29 +16,26 @@ namespace C968_Final.Stores
             m_productByProductId = new Dictionary<int, Product>();
         }
 
+        public int NextId { get => m_productId; }
+
         public void AddProduct(Product newProduct)
         {
-            newProduct.Id = m_productId;
+            newProduct.ProductID = m_productId;
             m_productByProductId.Add(m_productId, newProduct);
             m_productId++;
         }
 
-        public void UpdateProduct(int id, Product newProduct)
-        {
-            m_productByProductId[id] = newProduct;
-        }
+        public void UpdateProduct(int id, Product newProduct) => m_productByProductId[id] = newProduct;
 
-        public void DeleteProduct(int id)
-        {
-            m_productByProductId.Remove(id);
-        }
+        public bool DeleteProduct(int id) => m_productByProductId.Remove(id);
 
-        public bool CanRemovePart(int partId)
-        {
-            return !m_productByProductId.Values
-                .SelectMany(product => product.AssociatedParts)
+        public Product GetProduct(int productId) =>
+            m_productByProductId.TryGetValue(productId, out var product) ? product : null;
+
+        public bool CanRemovePart(int partId) =>
+            !m_productByProductId.Values
+                .SelectMany(product => product.AssociatedPartIds)
                 .Contains(partId);
-        }
 
         public IReadOnlyList<Product> GetProducts() => m_productByProductId.Values.ToList();
 

@@ -5,6 +5,7 @@ using C968_Final.Utility;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -16,14 +17,21 @@ namespace C968_Final.Viewmodels
 {
     public class PartViewModel : ViewModelBase, INotifyDataErrorInfo
     {
-        public PartViewModel(bool isInhouse, PartBase model, PartStore partStore)
+        public PartViewModel(bool isInhouse, PartBase model, Inventory inventory, TableActions.Action action)
         {
-            m_partStore = partStore;
+            m_indicatedAction = action;
+            if (m_indicatedAction == TableActions.Action.ADD)
+                Title = "Add Part";
+            else
+                Title = "Update Part";
+
+            m_inventory = inventory;
             m_errorViewModel = new ErrorViewModel();
-            
+            InputErrors = new ObservableCollection<string>();
+
             IsInHouse = isInhouse;
 
-            Id = model.Id.ToString();
+            Id = model.PartID.ToString();
             NameInput = model.Name;
             InventoryInput = model.InStock.ToString();
             var priceString = model.Price.ToString();
@@ -51,9 +59,12 @@ namespace C968_Final.Viewmodels
             RadioCheckedCommand = new RelayCommand<string>(OnRadioChecked, CanCheckRadio);
         }
 
+        public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+
         public RelayCommand<Window> SavePartCommand { get; private set; }
         public RelayCommand<string> RadioCheckedCommand { get; private set; }
 
+        public string Title { get; private set; }
         public string Id { get; set; }
         public string NameInput
         {
@@ -61,25 +72,17 @@ namespace C968_Final.Viewmodels
             set
             {
                 m_name = value;
-                
-                m_errorViewModel.RemoveError(nameof(NameInput));
-
-                if (!(m_name.Trim().Length > 0))
-                    m_errorViewModel.AddError(nameof(NameInput), "Name must contain a value");
+                ValidateInputs(nameof(NameInput));
             }
         }
 
         public string InventoryInput
         {
-            get => m_inventory;
+            get => m_partInventory;
             set
             {
-                m_inventory = value;
-                
-                m_errorViewModel.RemoveError(nameof(InventoryInput));
-                int inventory = 0;
-                if (!int.TryParse(m_inventory, out inventory) || inventory <= 0)
-                    m_errorViewModel.AddError(nameof(InventoryInput), "Inventory must be above 0");
+                m_partInventory = value;
+                ValidateInputs(nameof(InventoryInput));
             }
         }
 
@@ -89,14 +92,7 @@ namespace C968_Final.Viewmodels
             set
             {
                 m_price = value;
-
-                var isDecimal = ValidationUtility.ValueIsDecimalFormat(m_price);
-
-                m_errorViewModel.RemoveError(nameof(PriceInput));
-                if (!isDecimal)
-                    m_errorViewModel.AddError(nameof(PriceInput), "Price must be in decimal format.");
-                if (!float.TryParse(m_price, out var price) || price <= 0)
-                    m_errorViewModel.AddError(nameof(PriceInput), "Price must be above 0");
+                ValidateInputs(nameof(PriceInput));
             }
         }
 
@@ -106,12 +102,7 @@ namespace C968_Final.Viewmodels
             set
             {
                 m_max = value;
-
-                m_errorViewModel.RemoveError(nameof(MaxInput));
-                if (!int.TryParse(m_max, out var max) || max < 0)
-                    m_errorViewModel.AddError(nameof(MaxInput), "");
-
-                ValidateMinMax();
+                ValidateInputs(nameof(MaxInput));
             }
         }
 
@@ -121,12 +112,7 @@ namespace C968_Final.Viewmodels
             set
             {
                 m_min = value;
-
-                m_errorViewModel.RemoveError(nameof(MinInput));
-                if (!int.TryParse(m_min, out var min) || min < 0)
-                    m_errorViewModel.AddError(nameof(MinInput), "");
-                
-                ValidateMinMax();
+                ValidateInputs(nameof(MinInput));
             }
         }
 
@@ -136,13 +122,7 @@ namespace C968_Final.Viewmodels
             set
             {
                 m_machineId = value;
-
-                m_errorViewModel.RemoveError(nameof(MachineIdInput));
-                if (IsInHouse)
-                {
-                    if (!int.TryParse(m_machineId, out var machineId) || machineId <= 0)
-                        m_errorViewModel.AddError(nameof(MachineIdInput), "Machine ID must contain an int.");
-                }
+                ValidateInputs(nameof(MachineIdInput));
             }
         }
         public string CompanyNameInput
@@ -151,40 +131,19 @@ namespace C968_Final.Viewmodels
             set
             {
                 m_comanyName = value;
-
-                m_errorViewModel.RemoveError(nameof(CompanyNameInput));
-                if (!(m_comanyName.Trim().Length > 0))
-                    m_errorViewModel.AddError(nameof(CompanyNameInput), "Company ID must contain an int.");
-
+                ValidateInputs(nameof(CompanyNameInput));
             }
         }
-
 
         public bool IsInHouse { get; set; }
         public Visibility InHouseVisible { get; set; }
         public Visibility OutsourcedVisible { get; set; }
-        public Visibility MinMaxMessageVisible { get; set; }
+        public ObservableCollection<string> InputErrors { get => inputErrors; private set => inputErrors = value; }
 
         public bool HasErrors => HasErrorsCore();
+        public IEnumerable GetErrors(string propertyName) => m_errorViewModel.GetErrors(propertyName);
 
-        private bool HasErrorsCore()
-        {
-            var erroredProperties = m_errorViewModel.GetErroredProperties();
-
-            // As only one of these fields on this form are visible at a a time, the other will be in error state.
-            if (IsInHouse && erroredProperties.Where(p => p != nameof(CompanyNameInput)).Any())
-                return true;
-            else if (!IsInHouse && erroredProperties.Where(p => p != nameof(MachineIdInput)).Any())
-                return true;
-
-            return false ;
-        }
-
-            public bool CanSavePart(Window p)
-        {
-            // Add some save prevention logic
-            return !this.HasErrors;
-        }
+        public bool CanSavePart(Window p) => !HasErrors;
         public void SavePart(Window window)
         {
             if (window is null)
@@ -193,28 +152,29 @@ namespace C968_Final.Viewmodels
             var part = new PartBase()
             {
                 Name = NameInput,
-                Price = float.Parse(PriceInput),
+                Price = decimal.Parse(PriceInput),
                 Max = int.Parse(MaxInput),
                 Min = int.Parse(MinInput),
                 InStock = int.Parse(InventoryInput)
             };
 
             // Update part.
-            if (int.TryParse(Id, out var id))
+            if (m_indicatedAction == TableActions.Action.UPDATE)
             {
-                part.Id = id;
+                var id = int.Parse(Id);
+                part.PartID = id;
 
-                if (int.TryParse(MachineIdInput, out var machineId))
-                    m_partStore.UpdatePart(id, new InhousePart(machineId, part));
+                if (IsInHouse)
+                    m_inventory.UpdatePart(id, new InhousePart(int.Parse(MachineIdInput), part));
                 else
-                    m_partStore.UpdatePart(id, new OutsourcedPart(CompanyNameInput, part));
+                    m_inventory.UpdatePart(id, new OutsourcedPart(CompanyNameInput, part));
             }
             else
             {
-                if (int.TryParse(MachineIdInput, out var machineId))
-                    m_partStore.AddPart(new InhousePart(machineId, part));
+                if (IsInHouse)
+                    m_inventory.AddPart(new InhousePart(int.Parse(MachineIdInput), part));
                 else
-                    m_partStore.AddPart(new OutsourcedPart(CompanyNameInput, part));
+                    m_inventory.AddPart(new OutsourcedPart(CompanyNameInput, part));
             }
 
             window.Close();
@@ -231,35 +191,103 @@ namespace C968_Final.Viewmodels
             OutsourcedVisible = radioValue == c_inHouse ? Visibility.Hidden : Visibility.Visible;
             OnPropertyChanged(nameof(InHouseVisible));
             OnPropertyChanged(nameof(OutsourcedVisible));
+            ValidateInputs(nameof(CompanyNameInput));
 
         }
 
-        public IEnumerable GetErrors(string propertyName) => m_errorViewModel.GetErrors(propertyName);
+        private bool HasErrorsCore() => m_errorViewModel.HasErrors;
 
-        private void ValidateMinMax()
+        private void ValidateInputs(string propName)
         {
-            var shouldShowMessage = !int.TryParse(m_min, out var min)
-                || !int.TryParse(m_max, out var max)
-                || min > max;
+            switch(propName)
+            {
+                case nameof(NameInput):
+                    {
+                        m_errorViewModel.RemoveError(nameof(NameInput));
+                        if (m_name is null || m_name.Trim().Length == 0)
+                            m_errorViewModel.AddError(nameof(NameInput), "Name must contain a valid value.");
+                        break;
+                    }
+                case nameof(InventoryInput):
+                case nameof(MinInput):
+                case nameof(MaxInput):
+                    {
+                        m_errorViewModel.RemoveError(nameof(InventoryInput));
+                        m_errorViewModel.RemoveError(nameof(MinInput));
+                        m_errorViewModel.RemoveError(nameof(MaxInput));
 
-            MinMaxMessageVisible = shouldShowMessage ? Visibility.Visible : Visibility.Collapsed;
-            OnPropertyChanged(nameof(MinMaxMessageVisible));
+                        if (!int.TryParse(m_min, out var min) || min <= 0)
+                            m_errorViewModel.AddError(nameof(MinInput), "Min must be at above 0.");
+
+                        if (!int.TryParse(m_max, out var max) || max <= 0)
+                            m_errorViewModel.AddError(nameof(MaxInput), "Max must be above 0.");
+                                                
+                        if (min > max)
+                        {
+                            m_errorViewModel.AddError(nameof(MinInput), "Min must be less than or equal to Max");
+                            m_errorViewModel.AddError(nameof(MaxInput), "Min must be less than or equal to Max");
+                        }
+
+                        if (!int.TryParse(m_partInventory, out var inventory) || inventory <= 0)
+                            m_errorViewModel.AddError(nameof(InventoryInput), "Inventory must be above 0");
+                        else if (!ValidationUtility.IsInRange(inventory, min, max))
+                            m_errorViewModel.AddError(nameof(InventoryInput), "Inventory must be within Min and Max");
+
+                        OnPropertyChanged(nameof(InventoryInput));
+                        OnPropertyChanged(nameof(MinInput));
+                        OnPropertyChanged(nameof(MaxInput));
+                        break;
+                    }
+                case nameof(PriceInput):
+                    {
+                        m_errorViewModel.RemoveError(nameof(PriceInput));
+
+                        var isDecimal = ValidationUtility.ValueIsDecimalFormat(m_price);
+                        if (!isDecimal)
+                            m_errorViewModel.AddError(nameof(PriceInput), "Price must be in decimal format.");
+                        else if (!float.TryParse(m_price, out var price) || price <= 0)
+                            m_errorViewModel.AddError(nameof(PriceInput), "Price must be above 0");
+                        break;
+                    }
+                case nameof(CompanyNameInput):
+                case nameof(MachineIdInput):
+                    {
+                        m_errorViewModel.RemoveError(nameof(CompanyNameInput));
+                        m_errorViewModel.RemoveError(nameof(MachineIdInput));
+
+                        if (IsInHouse)
+                        {
+                            if (!int.TryParse(m_machineId, out var machineId) || machineId <= 0)
+                                m_errorViewModel.AddError(nameof(MachineIdInput), "Machine ID must contain be above 0.");
+                        }
+                        else
+                        {
+                            if (!(m_comanyName?.Trim().Length > 0))
+                                m_errorViewModel.AddError(nameof(CompanyNameInput), "Company ID must contain an valid value.");
+                        }
+                        break;
+                    }
+            }
+
+            InputErrors.Clear();
+            var allErrors = m_errorViewModel.GetAllErrors();
+            foreach (var error in allErrors)
+                InputErrors.Add(error);
         }
 
-        readonly PartStore m_partStore;
+        readonly Inventory m_inventory;
         readonly ErrorViewModel m_errorViewModel;
 
         const string c_inHouse = "InHouse";
-        const string c_outsource = "Outsourced";
 
         string m_name;
-        string m_inventory;
+        string m_partInventory;
         string m_price;
         string m_max;
         string m_min;
         string m_machineId;
         string m_comanyName;
-
-        public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+        ObservableCollection<string> inputErrors;
+        TableActions.Action m_indicatedAction;
     }
 }
