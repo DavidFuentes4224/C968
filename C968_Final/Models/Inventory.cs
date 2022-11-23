@@ -16,7 +16,13 @@ namespace C968_Final.Models
             m_partStore = partStore;
         }
 
-        public BindingList<Product> Products 
+        public event EventHandler InventoryUpdated;
+        private void OnInventoryUpdated(EventArgs e)
+        {
+            InventoryUpdated?.Invoke(this, e);
+        }
+
+        public BindingList<Product> Products
         {
             get => new BindingList<Product>(m_productStore.GetProducts().ToList());
             set
@@ -27,7 +33,7 @@ namespace C968_Final.Models
         }
         public BindingList<Part> AllParts
         {
-            get => new BindingList<Part>(m_partStore.GetParts().Select(p => (Part) p).ToList());
+            get => new BindingList<Part>(m_partStore.GetParts().Select(p => (Part)p).ToList());
             set
             {
                 foreach (var part in value)
@@ -37,13 +43,27 @@ namespace C968_Final.Models
         public int NextPartId => m_partStore.NextId;
         public int NextProductId => m_productStore.NextId;
 
-        public void AddProduct(Product productToAdd) => m_productStore.AddProduct(productToAdd);
+        public void AddProduct(Product productToAdd)
+        {
+            m_productStore.AddProduct(productToAdd);
+            OnInventoryUpdated(new EventArgs());
+        }
 
-        public bool RemoveProduct(int productId) => m_productStore.DeleteProduct(productId);
+        public bool RemoveProduct(int productId)
+        {
+            var wasSuccesful = m_productStore.DeleteProduct(productId);
+            OnInventoryUpdated(new EventArgs());
+            return wasSuccesful;
+        }
+
 
         public Product LookupProduct(int productId) => m_productStore.GetProduct(productId);
 
-        public void UpdateProduct(int productId, Product productToUpdate) => m_productStore.UpdateProduct(productId, productToUpdate);
+        public void UpdateProduct(int productId, Product productToUpdate)
+        {
+            m_productStore.UpdateProduct(productId, productToUpdate);
+            OnInventoryUpdated(new EventArgs());
+        }
 
         public void AddPart(Part partToAdd) => m_partStore.AddPart((PartBase) partToAdd);
 

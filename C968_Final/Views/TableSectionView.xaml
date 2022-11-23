@@ -19,7 +19,7 @@
             <Button Content="Delete" Margin="16,0,0,0" Command="{Binding DeleteTableItemCommand}" CommandParameter="{Binding ElementName=DataItems, Path=SelectedItem}"/>
         </StackPanel>
         <Label Content="{Binding ErrorMessage}" 
-               Visibility="{Binding ShowErrorMessage}"
+               Visibility="{Binding ShowErrorMessage, Converter={StaticResource BooleanToVisibilty}}"
                DockPanel.Dock="Bottom" 
                HorizontalAlignment="Right"
                Foreground="Red"/>
