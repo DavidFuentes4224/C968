@@ -18,6 +18,7 @@ namespace C968_Final.Viewmodels
         public ProductsSectionViewModel(Inventory inventory)
         {
             m_inventory = inventory;
+            m_inventory.InventoryUpdated += OnInventoryUpdated;
             m_tableItems = new ObservableCollection<TableItem>();
 
             AddTableItemCommand = new RelayCommand<object>(AddItem, CanAddItem);
@@ -26,13 +27,26 @@ namespace C968_Final.Viewmodels
             SearchTableItemsCommand = new RelayCommand<string>(SearchItems, CanSearch);
         }
 
+
         public RelayCommand<object> AddTableItemCommand { get; set; }
         public RelayCommand<Product> EditTableItemCommand { get; set; }
         public RelayCommand<Product> DeleteTableItemCommand { get; set; }
         public RelayCommand<string> SearchTableItemsCommand { get; set; }
 
 
-        public string ErrorMessage => "";
+        public string ErrorMessage => "Product is associated with at least one part.";
+        public bool ShowErrorMessage
+        {
+            get
+            {
+                var selectedProduct = (Product)m_selectedTableItem;
+                if (selectedProduct is null)
+                    return false;
+
+                return !m_inventory.CanRemoveProduct(selectedProduct.ProductID);
+            }
+        }
+
         public string TableName
         {
             get
@@ -46,6 +60,19 @@ namespace C968_Final.Viewmodels
         public string IdTitle => "Product ID";
 
         public IEnumerable<TableItem> TableItems => m_tableItems;
+
+        public TableItem SelectedTableItem
+        {
+            get
+            {
+                return m_selectedTableItem;
+            }
+            set
+            {
+                m_selectedTableItem = value;
+                OnPropertyChanged(nameof(ShowErrorMessage));
+            }
+        }
 
         private bool CanAddItem(object p) => true;
         private void AddItem(object p)
@@ -73,7 +100,7 @@ namespace C968_Final.Viewmodels
             RefreshTableItems();
         }
         
-        private bool CanDeleteItem(object p) => p is object;
+        private bool CanDeleteItem(object p) => p is Product product && m_inventory.CanRemoveProduct(product.ProductID);
         private void DeleteItem(object p)
         {
             if (!(p is Product product))
@@ -84,6 +111,7 @@ namespace C968_Final.Viewmodels
                 return;
 
             m_inventory.RemoveProduct(product.ProductID);
+            SelectedTableItem = null;
             RefreshTableItems();
         }
 
@@ -104,9 +132,14 @@ namespace C968_Final.Viewmodels
             }
             OnPropertyChanged(nameof(TableItems));
             OnPropertyChanged(nameof(TableName));
+            OnPropertyChanged(nameof(ShowErrorMessage));
         }
+
+        private void OnInventoryUpdated(object sender, EventArgs e) => RefreshTableItems();
 
         readonly ObservableCollection<TableItem> m_tableItems;
         readonly Inventory m_inventory;
+
+        TableItem m_selectedTableItem;
     }
 }

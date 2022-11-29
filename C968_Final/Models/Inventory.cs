@@ -51,31 +51,46 @@ namespace C968_Final.Models
 
         public bool RemoveProduct(int productId)
         {
-            var wasSuccesful = m_productStore.DeleteProduct(productId);
+            var wasSuccessful = m_productStore.DeleteProduct(productId);
             OnInventoryUpdated(new EventArgs());
-            return wasSuccesful;
+            return wasSuccessful;
         }
-
-
-        public Product LookupProduct(int productId) => m_productStore.GetProduct(productId);
 
         public void UpdateProduct(int productId, Product productToUpdate)
         {
+            productToUpdate.ProductID = productId;
             m_productStore.UpdateProduct(productId, productToUpdate);
             OnInventoryUpdated(new EventArgs());
         }
 
-        public void AddPart(Part partToAdd) => m_partStore.AddPart((PartBase) partToAdd);
+        public Product LookupProduct(int productId) => m_productStore.GetProduct(productId);
+        
+        public bool CanRemoveProduct(int productId) => m_productStore.CanRemoveProduct(productId);
 
-        public bool DeletePart(Part partToRemove) => m_partStore.DeletePart(partToRemove.PartID);
+        public void AddPart(Part partToAdd)
+        {
+            m_partStore.AddPart((PartBase)partToAdd);
+            OnInventoryUpdated(new EventArgs());
+        }
+
+        public bool DeletePart(Part partToRemove)
+        {
+            var wasSuccessful = m_partStore.DeletePart(partToRemove.PartID);
+            m_productStore.RemovePart(partToRemove.PartID);
+            OnInventoryUpdated(new EventArgs());
+            return wasSuccessful;
+        }
+
+        public void UpdatePart(int partId, Part partToUpdate)
+        {
+            partToUpdate.PartID = partId;
+            m_partStore.UpdatePart(partId, (PartBase)partToUpdate);
+            OnInventoryUpdated(new EventArgs());
+        }
 
         public Part LookupPart(int partId) => m_partStore.GetPart(partId);
 
         public List<Part> LookupParts(List<int> partIds) => m_partStore.GetParts(partIds).Select(p => (Part) p).ToList();
-
-        public void UpdatePart(int partId, Part partToUpdate) => m_partStore.UpdatePart(partId, (PartBase)partToUpdate);
-
-        public bool CanRemovePart(int partId) => m_productStore.CanRemovePart(partId);
 
         readonly ProductStore m_productStore;
         readonly PartStore m_partStore;

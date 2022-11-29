@@ -27,13 +27,8 @@ namespace C968_Final.Viewmodels
             DeleteTableItemCommand = new RelayCommand<PartBase>(DeleteItem, CanDeleteItem);
             SearchTableItemsCommand = new RelayCommand<string>(SearchItems, CanSearch);
             m_inventory = inventory;
-            inventory.InventoryUpdated += Inventory_InventoryUpdated;
-        }
 
-        private void Inventory_InventoryUpdated(object sender, EventArgs e)
-        {
-            RefreshTableItems();
-            OnPropertyChanged(nameof(ShowErrorMessage));
+            m_inventory.InventoryUpdated += OnInventoryUpdated;
         }
 
         public RelayCommand<object> AddTableItemCommand { get; set; }
@@ -52,37 +47,10 @@ namespace C968_Final.Viewmodels
                 return $"Parts ({filteredPartsCount} results) {(allPartsCount != filteredPartsCount ? hiddenPartsText : "")}";
             }
         }
-        public string ErrorMessage => "Part is associated with at least one product.";
-
-        public bool ShowErrorMessage
-        {
-            get
-            {
-                var selectedPart = (PartBase)m_selectedTableItem;
-                if (selectedPart is null)
-                    return false;
-                
-                return !m_inventory.CanRemovePart(selectedPart.PartID); 
-            }
-        }
+        public string ErrorMessage => "";
 
         public IEnumerable<TableItem> TableItems => m_tableItems;
 
-        public TableItem SelectedTableItem 
-        {
-            get
-            {
-                return m_selectedTableItem;
-            }
-            set
-            {
-                m_selectedTableItem = value;
-                if (value is null)
-                    return;
-
-                OnPropertyChanged(nameof(ShowErrorMessage));
-            }
-        }
 
         private bool CanAddItem(object p) => true;
         private void AddItem(object p)
@@ -111,24 +79,17 @@ namespace C968_Final.Viewmodels
             RefreshTableItems();
         }
 
-        private bool CanDeleteItem(PartBase p) => p is object && m_inventory.CanRemovePart(p.PartID);
+        private bool CanDeleteItem(PartBase p) => p is object;
         private void DeleteItem(object p)
         {
             if (!(p is PartBase part))
                 return;
-
-            if(!m_inventory.CanRemovePart(part.PartID))
-            {
-                var messageBox = MessageBox.Show("Unable to delete. This part is associated with a Product.", "Delete Error", MessageBoxButton.OK);
-                return;
-            }
 
             var diaglogResult = MessageBox.Show("Are you sure?", "Delete Confirmation", MessageBoxButton.YesNo);
             if (diaglogResult != MessageBoxResult.Yes)
                 return;
 
             m_inventory.DeletePart(part);
-            SelectedTableItem = null;
             RefreshTableItems();
         }
 
@@ -149,12 +110,11 @@ namespace C968_Final.Viewmodels
             }
             OnPropertyChanged(nameof(TableItems));
             OnPropertyChanged(nameof(TableName));
-            OnPropertyChanged(nameof(ShowErrorMessage));
         }
+
+        private void OnInventoryUpdated(object sender, EventArgs e) => RefreshTableItems();
 
         readonly ObservableCollection<TableItem> m_tableItems;
         readonly Inventory m_inventory;
-
-        TableItem m_selectedTableItem;
     }
 }

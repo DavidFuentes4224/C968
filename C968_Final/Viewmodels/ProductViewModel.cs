@@ -26,6 +26,7 @@ namespace C968_Final.Viewmodels
 
             m_errorViewModel = new ErrorViewModel();
             m_inventory = inventory;
+            m_inventory.InventoryUpdated += OnInventoryUpdated;
 
             InputErrors = new ObservableCollection<string>();
 
@@ -46,11 +47,6 @@ namespace C968_Final.Viewmodels
             var productParts = m_inventory.LookupParts(model.AssociatedPartIds);
             m_productParts = new ObservableCollection<TableItem>(productParts);
 
-            if (productParts.Count == 0)
-            {
-                m_errorViewModel.AddError(nameof(ProductParts), c_partError);
-            }
-
             AddPartCommand = new RelayCommand<IList>(AddPart, CanAddPart);
             DeletePartCommand = new RelayCommand<IList>(RemovePart, CanRemovePart);
             SaveProductCommand = new RelayCommand<Window>(SaveProduct, CanSaveProduct);
@@ -58,7 +54,7 @@ namespace C968_Final.Viewmodels
 
             UpdateErrorsList();
         }
-        
+
         public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
         public string Id { get; set; }
@@ -152,11 +148,6 @@ namespace C968_Final.Viewmodels
             foreach(var part in selectedParts)
                 m_productParts.Add(part);
 
-            if (m_productParts.Count() > 0)
-                m_errorViewModel.RemoveError(nameof(ProductParts));
-            else
-                m_errorViewModel.AddError(nameof(ProductParts), c_partError);
-
             UpdateErrorsList();
 
         }
@@ -174,11 +165,6 @@ namespace C968_Final.Viewmodels
             var selectedParts = p.Cast<PartBase>().ToList();
             for(int i = 0; i < selectedParts.Count(); i++)
                 m_productParts.Remove(selectedParts[i]);
-
-            if (m_productParts.Count() == 0)
-                m_errorViewModel.AddError(nameof(ProductParts), c_partError);
-            else
-                m_errorViewModel.RemoveError(nameof(ProductParts));
 
             UpdateErrorsList();
         }
@@ -293,10 +279,10 @@ namespace C968_Final.Viewmodels
                 InputErrors.Add(error);
         }
 
+        private void OnInventoryUpdated(object sender, EventArgs e) => RefreshTableItems();
+
         readonly ErrorViewModel m_errorViewModel;
         readonly Inventory m_inventory;
-
-        const string c_partError = "Product requires at least 1 part.";
 
         ObservableCollection<TableItem> m_candidateParts;
         ObservableCollection<TableItem> m_productParts;

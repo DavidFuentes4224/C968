@@ -32,12 +32,15 @@ namespace C968_Final.Stores
         public Product GetProduct(int productId) =>
             m_productByProductId.TryGetValue(productId, out var product) ? product : null;
 
-        public bool CanRemovePart(int partId) =>
-            !m_productByProductId.Values
-                .SelectMany(product => product.AssociatedPartIds)
-                .Contains(partId);
+        public bool CanRemoveProduct(int productid) => !m_productByProductId[productid].AssociatedPartIds.Any();
 
         public IReadOnlyList<Product> GetProducts() => m_productByProductId.Values.ToList();
+
+        public void RemovePart(int partID)
+        {
+            foreach (var product in GetProducts())
+                product.RemoveAssociatedPart(partID);
+        }
 
         Dictionary<int, Product> m_productByProductId;
         int m_productId;

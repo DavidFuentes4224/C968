@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "MUDQojqxosNNeFmsRI+kMmKx7AbtltxB8hJW/su0QUO1LuwiaXP3F5C1LoxhJOFEKLlC6OK0/34W3EKSgGYw1w==",
+  "dgSpecHash": "25wTVNCx9CL/nBFAD66jSW4y+I/2k/tlqPQ7nrx4avXnhydy0qP2U+faXNka78m1GRJcDP08cwqSHBIP9saAog==",
   "success": true,
   "projectFilePath": "C:\\Users\\hobom\\source\\repos\\C968_Final\\C968_Final\\C968_Final.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\hobom\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\5.0.17\\microsoft.netcore.app.host.win-x64.5.0.17.nupkg.sha512"
+  ],
   "logs": []
 }
